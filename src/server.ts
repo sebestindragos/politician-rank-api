@@ -1,43 +1,33 @@
-import * as express from "express";
-import { App } from "./app";
+import * as http from "http";
 
-export let expressApp = express();
-let app: App | undefined;
+import { ProcessManager } from "./application/process/manager";
+import { Logger } from "./application/process/logger";
 
-async function bootstrap() {
-  app = new App();
+import { bootstrap, tearDown, expressApp } from "./main";
+import { dotenv } from "./application/env";
 
-  await app.start();
+let pm = new ProcessManager();
+let server = http.createServer(expressApp);
 
-  // to be used only with a frontend (nginx or any load balancer)
-  // (by default req.ip will ignore the 'x-forwarded-for' header)
-  expressApp.enable("trust proxy");
+pm.once("start", async () => {
+  try {
+    await bootstrap();
 
-  // redirect http -> https
-  expressApp.use((req, res, next) => {
-    // check for load balancer forwarded protocol header, not the direct protocol which will always be HTTP
-    if (req.headers["x-forwarded-proto"] === "http") {
-      let host = req.hostname.replace(/^www\./i, "");
-      let href = `https://${host}${req.url}`;
-      return res.redirect(href);
-    }
-
-    let wwwRx = /^www\./i;
-    if (wwwRx.test(req.hostname)) {
-      let host = req.hostname.replace(/^www\./i, "");
-      let href = `https://${host}${req.url}`;
-      return res.redirect(href);
-    }
-
-    next();
-  });
-
-  // load balancer health check route
-  expressApp.get("/health-check", (_req, res) => res.end());
-}
-
-async function tearDown() {
-  if (app) {
-    await app.stop();
+    // start listening
+    let host: string = dotenv.hostname;
+    let port: number = dotenv.port;
+    server.listen(port, host, () => {
+      Logger.get().write("magic happens on port", port);
+    });
+  } catch (error) {
+    Logger.get().error(error);
+    await tearDown();
   }
-}
+});
+pm.once("stop", () => {
+  Logger.get().write("received shutdown signal, closing server ...");
+
+  server.close();
+  // (server as any).shutdown();
+});
+pm.init();
