@@ -1,6 +1,5 @@
 {
   "TableName": "users",
-  "BillingMode": "PAY_PER_REQUEST",
   "KeySchema": [
     {
       "AttributeName": "_id",
