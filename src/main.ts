@@ -4,6 +4,8 @@ import * as compression from "compression";
 import * as helmet from "helmet";
 import * as cors from "cors";
 import { App } from "./app";
+import { ApiGateway } from "./gateway";
+import { dotenv } from "./application/env";
 
 export const expressApp = express();
 export const app = new App();
@@ -40,9 +42,6 @@ export async function bootstrap() {
   // configure middleware
   expressApp.use(helmet({}));
   expressApp.use(helmet.referrerPolicy());
-  // expressApp.use(
-  //   accessLogger(nconf.get("accesslog:format"), nconf.get("accesslog:file"))
-  // );
   expressApp.use(bodyParser.json());
   expressApp.use(compression());
   expressApp.use(
@@ -52,10 +51,8 @@ export async function bootstrap() {
   );
 
   // load API gateway
-  // if (!epoll.apiGateway) {
-  //   throw new Error('API GATEWAY NOT INITIALIZED.');
-  // }
-  // app.use(epoll.apiGateway.router);
+  const gateway = new ApiGateway(dotenv.engine.apiVersion, app.registry);
+  expressApp.use(gateway.router);
 }
 
 export async function tearDown() {

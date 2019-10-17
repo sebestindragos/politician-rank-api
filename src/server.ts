@@ -1,4 +1,5 @@
 import * as http from "http";
+import * as morgan from "morgan";
 
 import { ProcessManager } from "./application/process/manager";
 import { Logger } from "./application/process/logger";
@@ -11,6 +12,9 @@ let server = http.createServer(expressApp);
 
 pm.once("start", async () => {
   try {
+    // load dev middleware
+    expressApp.use(morgan("dev"));
+
     await bootstrap();
 
     // start listening
@@ -29,5 +33,9 @@ pm.once("stop", () => {
 
   server.close();
   // (server as any).shutdown();
+
+  server.once("close", async () => {
+    await tearDown();
+  });
 });
 pm.init();

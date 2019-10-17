@@ -12,9 +12,10 @@ import { dotenv } from "./application/env";
  * @author Dragos Sebestin
  */
 export class App {
-  private _registry = new ServiceRegistry();
   private _mailer?: IMailer;
   private _dynamoDbClient?: aws.DynamoDB.DocumentClient;
+
+  public registry = new ServiceRegistry();
 
   /**
    * Start the app instance.
@@ -42,6 +43,6 @@ export class App {
    */
   private _initUsers(mailer: IMailer, db: aws.DynamoDB.DocumentClient) {
     const service = instantiateUserService(mailer, db);
-    this._registry.add(service);
+    this.registry.add(service);
   }
 }

@@ -7,5 +7,8 @@ export const dotenv = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
     endpoint: process.env.AWS_ENDPOINT
+  },
+  engine: {
+    apiVersion: process.env.ENGINE_API_VERSION || "1.0.0"
   }
 };
