@@ -1,9 +1,26 @@
 {
   "TableName": "users",
+  "BillingMode": "PAY_PER_REQUEST",
   "KeySchema": [
     {
       "AttributeName": "_id",
       "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "email",
+      "KeyType": "RANGE"
+    },
+    {
+      "AttributeName": "password",
+      "KeyType": "RANGE"
+    },
+    {
+      "AttributeName": "firstname",
+      "KeyType": "RANGE"
+    },
+    {
+      "AttributeName": "lastname",
+      "KeyType": "RANGE"
     }
   ],
   "AttributeDefinitions": [
