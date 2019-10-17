@@ -8,18 +8,6 @@
     {
       "AttributeName": "email",
       "KeyType": "RANGE"
-    },
-    {
-      "AttributeName": "password",
-      "KeyType": "RANGE"
-    },
-    {
-      "AttributeName": "firstname",
-      "KeyType": "RANGE"
-    },
-    {
-      "AttributeName": "lastname",
-      "KeyType": "RANGE"
     }
   ],
   "AttributeDefinitions": [
@@ -29,18 +17,6 @@
     },
     {
       "AttributeName": "email",
-      "AttributeType": "S"
-    },
-    {
-      "AttributeName": "password",
-      "AttributeType": "S"
-    },
-    {
-      "AttributeName": "firstname",
-      "AttributeType": "S"
-    },
-    {
-      "AttributeName": "lastname",
       "AttributeType": "S"
     }
   ],
