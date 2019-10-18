@@ -1,4 +1,3 @@
-import * as aws from "aws-sdk";
 import * as jwt from "jsonwebtoken";
 import * as exceptional from "exceptional.js";
 
@@ -9,10 +8,10 @@ import { Logger } from "../../application/process/logger";
 import { IUser } from "./kernel/IUser";
 import { IAuthToken } from "./kernel/IAuthToken";
 import { dotenv } from "../../application/env";
+import { IRepository } from "../../application/repository/IRepository";
 
 export const SERVICE_NAME = "users";
 
-const USERS_TABLE_NAME = "users";
 const EXCEPTIONAL = exceptional.context(SERVICE_NAME);
 
 /**
@@ -28,7 +27,7 @@ export class UserService implements IService {
    */
   constructor(
     private _mailer: IMailer,
-    private _db: aws.DynamoDB.DocumentClient
+    private _usersRepo: IRepository<IUser>
   ) {}
 
   /**
@@ -56,17 +55,14 @@ export class UserService implements IService {
     });
 
     // check if email is already used
-    let found: IUser | undefined;
-    try {
-      found = await this._findUserByEmail(user.email);
+    const found = await this._usersRepo.findOne({ email });
+    if (found) {
       Logger.get().write("email is already used");
-    } catch (error) {
-      Logger.get().write("email not already used");
+      throw EXCEPTIONAL.ConflictException(12, { email });
     }
-    if (found) throw EXCEPTIONAL.ConflictException(12, { email });
 
     // save to db
-    await this._db.put({ TableName: USERS_TABLE_NAME, Item: user }).promise();
+    await this._usersRepo.insertOne(user);
 
     // send confirmation email
     this._mailer;
@@ -96,7 +92,7 @@ export class UserService implements IService {
   /**
    * Find a user by its id.
    */
-  async findById(id: string): Promise<IUser> {
+  async findById(id: number): Promise<IUser> {
     const found = await this._findUserById(id);
 
     // remove sensitive data
@@ -110,7 +106,7 @@ export class UserService implements IService {
    */
   private _buildAuthToken(user: IUser) {
     const tokenData: IAuthToken = {
-      userId: user._id
+      userId: user.id
     };
 
     return jwt.sign(tokenData, dotenv.jwtSecret, {
@@ -122,47 +118,21 @@ export class UserService implements IService {
    * Find a user by email.
    */
   private async _findUserByEmail(email: string): Promise<IUser> {
-    const result = await this._db
-      .query({
-        TableName: USERS_TABLE_NAME,
-        IndexName: "emailIndex",
-        KeyConditionExpression: "email = :email",
-        ExpressionAttributeValues: {
-          ":email": email
-        },
-        Select: "ALL_ATTRIBUTES",
-        Limit: 1
-      })
-      .promise();
+    const found = await this._usersRepo.findOne({ email });
 
-    if (!result.Items || result.Items.length !== 1)
-      throw EXCEPTIONAL.NotFoundException(10, { email: email });
+    if (!found) throw EXCEPTIONAL.NotFoundException(10, { email: email });
 
-    return result.Items[0] as IUser;
+    return found;
   }
 
   /**
    * Find a user by id.
    */
-  private async _findUserById(id: string): Promise<IUser> {
-    const result = await this._db
-      .query({
-        TableName: USERS_TABLE_NAME,
-        KeyConditionExpression: "#id = :id",
-        ExpressionAttributeNames: {
-          "#id": "_id"
-        },
-        ExpressionAttributeValues: {
-          ":id": id
-        },
-        Select: "ALL_ATTRIBUTES",
-        Limit: 1
-      })
-      .promise();
+  private async _findUserById(id: number): Promise<IUser> {
+    const found = await this._usersRepo.findOne({ id });
 
-    if (!result.Items || result.Items.length !== 1)
-      throw EXCEPTIONAL.NotFoundException(13, { id: id });
+    if (!found) throw EXCEPTIONAL.NotFoundException(13, { id: id });
 
-    return result.Items[0] as IUser;
+    return found;
   }
 }

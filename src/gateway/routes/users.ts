@@ -79,9 +79,9 @@ export function get(registry: ServiceRegistry): express.Router {
    */
   router.get("/users/me", isAuthorized(), async (req, res, next) => {
     try {
-      const { _id }: { _id: string } = (req as any).user;
+      const { id }: { id: number } = (req as any).user;
 
-      res.json({ result: await users.findById(_id) });
+      res.json({ result: await users.findById(id) });
     } catch (error) {
       next(error);
     }

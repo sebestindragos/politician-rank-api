@@ -31,7 +31,7 @@ export function isAuthorized() {
           const tokenData = decodedToken as IAuthToken;
           Object.defineProperty(req, "user", {
             value: {
-              _id: tokenData.userId
+              id: tokenData.userId
             }
           });
           next();

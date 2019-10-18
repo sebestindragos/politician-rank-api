@@ -9,11 +9,13 @@ import {
 
 import { Logger } from "../application/process/logger";
 import { ServiceRegistry } from "../application/serviceRegistry";
+import { dotenv } from "../application/env";
 // import {RateLimiter} from '../application/rateLimiter';
 
 // routes
 import { get as UserRoutes } from "./routes/users";
-import { dotenv } from "../application/env";
+import { get as RankRoutes } from "./routes/ranks";
+
 const EXCEPTIONAL = context("default");
 
 /**
@@ -38,6 +40,7 @@ export class ApiGateway {
     // load api routes
     let apiRouter = express.Router();
     apiRouter.use(UserRoutes(registry));
+    apiRouter.use(RankRoutes(registry));
 
     this.router.use(`/api/${apiVersion}`, apiRouter);
 

@@ -1,27 +1,15 @@
-import * as aws from "aws-sdk";
+import * as mariadb from "mariadb";
 
 import { UserService } from "./service";
 import { IMailer } from "../../application/util/mailer";
-// import { Logger } from "../../application/process/logger";
+import { MySqlRepository } from "../../application/repository/mysqlRepository";
 
-export function instantiate(
-  mailer: IMailer,
-  db: aws.DynamoDB.DocumentClient
-): UserService {
-  const service = new UserService(mailer, db);
+export function instantiate(mailer: IMailer, db: mariadb.Pool): UserService {
+  // init repositories
+  const usersRepo = new MySqlRepository(db, "users");
 
-  // tests
-  // service
-  //   .registerAccount({
-  //     email: "dragos@mail.com",
-  //     password: "123456",
-  //     firstname: "dragos",
-  //     lastname: "sebestin"
-  //   })
-  //   .then(() => {
-  //     Logger.get().write("user registered");
-  //   })
-  //   .catch(error => Logger.get().error(error));
+  // init service
+  const service = new UserService(mailer, usersRepo);
 
   return service;
 }
