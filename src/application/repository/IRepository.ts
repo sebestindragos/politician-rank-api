@@ -8,6 +8,6 @@ export interface IRepository<T> {
       limit?: number;
     }
   ): Promise<T[]>;
-  // updateOne(query: Partial<T>, update: Partial<T>): Promise<void>;
+  updateOne(query: Partial<T>, update: Partial<T>): Promise<void>;
   // deleteOne(query: Partial<T>): Promise<boolean>;
 }

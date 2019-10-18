@@ -5,14 +5,19 @@ import {
   SERVICE_NAME as POLITICIANS_SERVICE_NAME,
   PoliticianRankService
 } from "../../domain/ranks/service";
+import {
+  SERVICE_NAME as USER_SERVICE_NAME,
+  UserService
+} from "../../domain/users/service";
 
 import { ServiceRegistry } from "../../application/serviceRegistry";
 import { transform, transformQ } from "../transform";
 import { isAuthorized } from "../authorization";
 
 export function get(registry: ServiceRegistry): express.Router {
-  let router = express.Router();
+  const router = express.Router();
 
+  const users = registry.getInstance(USER_SERVICE_NAME) as UserService;
   const ranks = registry.getInstance(
     POLITICIANS_SERVICE_NAME
   ) as PoliticianRankService;
@@ -71,6 +76,54 @@ export function get(registry: ServiceRegistry): express.Router {
       try {
         const { limit, cursorId } = req.query;
         res.send({ result: await ranks.listPoliticians({ limit, cursorId }) });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  /**
+   * Register a new upvote.
+   */
+  router.post(
+    "/ranks/politicians/:id/upvote",
+    isAuthorized(),
+    async (req, res, next) => {
+      try {
+        const { id }: { id: number } = (req as any).user;
+        const { id: politicianId } = req.params;
+
+        const user = await users.findById(id);
+        const politician = await ranks.getPoliticianById(
+          parseInt(politicianId)
+        );
+        await ranks.addUpvote(user, politician);
+
+        res.send({ result: {} });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  /**
+   * Register a new downvote.
+   */
+  router.post(
+    "/ranks/politicians/:id/downvote",
+    isAuthorized(),
+    async (req, res, next) => {
+      try {
+        const { id }: { id: number } = (req as any).user;
+        const { id: politicianId } = req.params;
+
+        const user = await users.findById(id);
+        const politician = await ranks.getPoliticianById(
+          parseInt(politicianId)
+        );
+        await ranks.addDownvote(user, politician);
+
+        res.send({ result: {} });
       } catch (error) {
         next(error);
       }

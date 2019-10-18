@@ -5,6 +5,9 @@ import { Logger } from "../../application/process/logger";
 import { Politician } from "./kernel/politician";
 import { IPolitician } from "./kernel/IPolitician";
 import { IRepository } from "../../application/repository/IRepository";
+import { IUser } from "../users/kernel/IUser";
+import { IVote } from "./kernel/IVote";
+import { Vote } from "./kernel/vote";
 
 export const SERVICE_NAME = "politician-rank";
 
@@ -16,7 +19,10 @@ export class PoliticianRankService implements IService {
   /**
    * Class constructor.
    */
-  constructor(private _politiciansRepo: IRepository<IPolitician>) {}
+  constructor(
+    private _politiciansRepo: IRepository<IPolitician>,
+    private _votesRepo: IRepository<IVote>
+  ) {}
 
   /**
    * Add a new politician to the collection.
@@ -49,6 +55,13 @@ export class PoliticianRankService implements IService {
     return p;
   }
 
+  /**
+   * Get a politician by id.
+   */
+  async getPoliticianById(id: number): Promise<IPolitician> {
+    return this._findPoliticianById(id);
+  }
+
   async listPoliticians({
     limit = 20,
     cursorId
@@ -58,5 +71,73 @@ export class PoliticianRankService implements IService {
   }): Promise<IPolitician[]> {
     EXCEPTIONAL;
     return this._politiciansRepo.find({}, { limit });
+  }
+
+  /**
+   * Add a new user upvote.
+   */
+  async addUpvote(user: IUser, politician: IPolitician) {
+    let foundVote = await this._votesRepo.findOne({
+      userId: user.id,
+      politicianId: politician.id
+    });
+
+    if (!foundVote) {
+      const newVote = Vote.create(user.id, politician.id);
+      await this._votesRepo.insertOne(newVote);
+      foundVote = await this._votesRepo.findOne({
+        userId: user.id,
+        politicianId: politician.id
+      });
+    }
+
+    if (!foundVote) throw EXCEPTIONAL.GenericException(10, {});
+
+    const vote = new Vote(foundVote);
+    vote.addUpvote();
+
+    // update db
+    await this._votesRepo.updateOne({ id: vote.id }, { upVotes: vote.upVotes });
+  }
+
+  /**
+   * Add a new user downvote.
+   */
+  async addDownvote(user: IUser, politician: IPolitician) {
+    let foundVote = await this._votesRepo.findOne({
+      userId: user.id,
+      politicianId: politician.id
+    });
+
+    if (!foundVote) {
+      const newVote = Vote.create(user.id, politician.id);
+      await this._votesRepo.insertOne(newVote);
+      foundVote = await this._votesRepo.findOne({
+        userId: user.id,
+        politicianId: politician.id
+      });
+    }
+
+    if (!foundVote) throw EXCEPTIONAL.GenericException(10, {});
+
+    const vote = new Vote(foundVote);
+    vote.addDownvote();
+
+    // update db
+    await this._votesRepo.updateOne(
+      { id: vote.id },
+      { downVotes: vote.downVotes }
+    );
+  }
+
+  /**
+   * Find a politician by id.
+   */
+  private async _findPoliticianById(id: number): Promise<IPolitician> {
+    const found = await this._politiciansRepo.findOne({ id });
+
+    if (!found) throw EXCEPTIONAL.NotFoundException(11, { politicianId: id });
+
+    return found;
   }
 }

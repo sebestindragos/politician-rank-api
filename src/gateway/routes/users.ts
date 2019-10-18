@@ -10,9 +10,9 @@ import { transform } from "../transform";
 import { isAuthorized } from "../authorization";
 
 export function get(registry: ServiceRegistry): express.Router {
-  let router = express.Router();
+  const router = express.Router();
 
-  let users = registry.getInstance(USER_SERVICE_NAME) as UserService;
+  const users = registry.getInstance(USER_SERVICE_NAME) as UserService;
 
   router.post(
     "/users/register",
