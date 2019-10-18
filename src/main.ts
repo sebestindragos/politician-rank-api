@@ -6,11 +6,16 @@ import * as cors from "cors";
 import { App } from "./app";
 import { ApiGateway } from "./gateway";
 import { dotenv } from "./application/env";
+import { initErrorSubsystem } from "./application/errors";
 
 export const expressApp = express();
 export const app = new App();
 
 export async function bootstrap() {
+  // load errors subsystem
+  initErrorSubsystem("ro"); // ro locale for now
+
+  // start the app
   await app.start();
 
   // to be used only with a frontend (nginx or any load balancer)

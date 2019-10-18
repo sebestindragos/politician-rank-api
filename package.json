@@ -26,6 +26,8 @@
     "exceptional.js": "0.6.2",
     "express": "4.17.1",
     "helmet": "3.21.1",
+    "inpt.js": "0.5.1",
+    "jsonwebtoken": "8.5.1",
     "moment": "2.24.0",
     "semver": "6.3.0",
     "uuid": "3.3.3"
@@ -38,6 +40,7 @@
     "@types/cors": "2.8.6",
     "@types/express": "4.17.1",
     "@types/helmet": "0.0.44",
+    "@types/jsonwebtoken": "8.3.5",
     "@types/morgan": "1.7.37",
     "@types/semver": "6.0.2",
     "@types/uuid": "3.4.5",

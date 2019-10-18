@@ -10,5 +10,9 @@ export const dotenv = {
   },
   engine: {
     apiVersion: process.env.ENGINE_API_VERSION || "1.0.0"
-  }
+  },
+  jwtSecret: process.env.JWT_SECRET || ""
 };
+
+// check constraints
+if (!dotenv.jwtSecret) throw new Error("JTW secret not provided.");

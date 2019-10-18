@@ -52,4 +52,11 @@ export class User implements IUser {
       lastname: lastname ? StringUtil.capitalize(lastname.trim()) : undefined
     });
   }
+
+  /**
+   * Check if a provided password is matching the stored one.
+   */
+  checkPassword(pwd: string): boolean {
+    return bcrypt.compareSync(pwd, this.password);
+  }
 }
