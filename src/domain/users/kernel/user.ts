@@ -15,7 +15,7 @@ import { IUser } from "./IUser";
 export class User implements IUser {
   public _id: string;
   public email: string;
-  public password: string;
+  public password?: string;
   public firstname: string;
   public lastname?: string;
 
@@ -57,6 +57,7 @@ export class User implements IUser {
    * Check if a provided password is matching the stored one.
    */
   checkPassword(pwd: string): boolean {
+    if (!this.password) throw new Error("Account has no password set.");
     return bcrypt.compareSync(pwd, this.password);
   }
 }

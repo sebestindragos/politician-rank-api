@@ -7,6 +7,7 @@ import {
 } from "../../domain/users/service";
 import { ServiceRegistry } from "../../application/serviceRegistry";
 import { transform } from "../transform";
+import { isAuthorized } from "../authorization";
 
 export function get(registry: ServiceRegistry): express.Router {
   let router = express.Router();
@@ -72,6 +73,19 @@ export function get(registry: ServiceRegistry): express.Router {
       }
     }
   );
+
+  /**
+   * Get own user profile.
+   */
+  router.get("/users/me", isAuthorized(), async (req, res, next) => {
+    try {
+      const { _id }: { _id: string } = (req as any).user;
+
+      res.json({ result: await users.findById(_id) });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   return router;
 }

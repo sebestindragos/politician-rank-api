@@ -94,6 +94,18 @@ export class UserService implements IService {
   }
 
   /**
+   * Find a user by its id.
+   */
+  async findById(id: string): Promise<IUser> {
+    const found = await this._findUserById(id);
+
+    // remove sensitive data
+    delete found.password;
+
+    return found;
+  }
+
+  /**
    * Create an authentication token from client credentials.
    */
   private _buildAuthToken(user: IUser) {
@@ -125,6 +137,31 @@ export class UserService implements IService {
 
     if (!result.Items || result.Items.length !== 1)
       throw EXCEPTIONAL.NotFoundException(10, { email: email });
+
+    return result.Items[0] as IUser;
+  }
+
+  /**
+   * Find a user by id.
+   */
+  private async _findUserById(id: string): Promise<IUser> {
+    const result = await this._db
+      .query({
+        TableName: USERS_TABLE_NAME,
+        KeyConditionExpression: "#id = :id",
+        ExpressionAttributeNames: {
+          "#id": "_id"
+        },
+        ExpressionAttributeValues: {
+          ":id": id
+        },
+        Select: "ALL_ATTRIBUTES",
+        Limit: 1
+      })
+      .promise();
+
+    if (!result.Items || result.Items.length !== 1)
+      throw EXCEPTIONAL.NotFoundException(13, { id: id });
 
     return result.Items[0] as IUser;
   }
