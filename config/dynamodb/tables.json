@@ -20,6 +20,21 @@
       "AttributeType": "S"
     }
   ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "emailIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "email",
+          "KeyType": "S"
+        }
+      ],
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+      }
+    }
+  ],
   "ProvisionedThroughput": {
     "ReadCapacityUnits": 5,
     "WriteCapacityUnits": 5
