@@ -98,6 +98,10 @@ export class PoliticianRankService implements IService {
 
     // update db
     await this._votesRepo.updateOne({ id: vote.id }, { upVotes: vote.upVotes });
+    await this._politiciansRepo.updateOne(
+      { id: politician.id },
+      { upVotes: politician.upVotes + 1 }
+    );
   }
 
   /**
@@ -127,6 +131,10 @@ export class PoliticianRankService implements IService {
     await this._votesRepo.updateOne(
       { id: vote.id },
       { downVotes: vote.downVotes }
+    );
+    await this._politiciansRepo.updateOne(
+      { id: politician.id },
+      { downVotes: politician.downVotes + 1 }
     );
   }
 
