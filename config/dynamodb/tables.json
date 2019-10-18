@@ -26,9 +26,12 @@
       "KeySchema": [
         {
           "AttributeName": "email",
-          "KeyType": "S"
+          "KeyType": "HASH"
         }
       ],
+      "Projection": {
+        "ProjectionType": "KEYS_ONLY"
+      },
       "ProvisionedThroughput": {
         "ReadCapacityUnits": 5,
         "WriteCapacityUnits": 5
