@@ -93,7 +93,35 @@ export class UserService implements IService {
   /**
    * Confirm a user account.
    */
-  confirmAccount(userId: number, tempToken: string) {}
+  async confirmAccount(userId: number, tempToken: string) {
+    Logger.get().write("confirming user account ...");
+    const foundToken = await this._tempTokensRepo.findOne({ uuid: tempToken });
+    if (!foundToken) {
+      throw EXCEPTIONAL.NotFoundException(14, {});
+    }
+
+    const foundUser = await this._usersRepo.findOne({ id: userId });
+    if (!foundUser) {
+      throw EXCEPTIONAL.NotFoundException(13, { id: userId });
+    }
+
+    // deactivate token
+    const token = new TempToken(foundToken);
+    if (token.isExpired()) {
+      throw EXCEPTIONAL.NotFoundException(14, { id: userId });
+    }
+    token.disable();
+    this._tempTokensRepo.updateOne({ id: token.id }, { active: token.active });
+
+    // activate user
+    const user = new User(foundUser);
+    user.activate();
+    await this._usersRepo.updateOne({ id: user.id }, { active: user.active });
+
+    Logger.get().write("user account confirmed");
+
+    return this._buildAuthToken(user);
+  }
 
   /**
    * Login a user with his credentials.

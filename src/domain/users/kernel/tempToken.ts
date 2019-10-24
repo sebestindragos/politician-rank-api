@@ -31,4 +31,18 @@ export class TempToken implements ITempToken {
 
     return tempToken;
   }
+
+  /**
+   * Disable this token.
+   */
+  disable() {
+    this.active = 0;
+  }
+
+  /**
+   * Check if the token is expired.
+   */
+  isExpired() {
+    return this.active === 0;
+  }
 }

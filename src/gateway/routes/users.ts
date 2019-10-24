@@ -53,6 +53,25 @@ export function get(registry: ServiceRegistry): express.Router {
   );
 
   router.post(
+    "/users/confirm",
+    transform(
+      new Schema({
+        userId: Schema.Types.Number,
+        token: Schema.Types.String
+      })
+    ),
+    async (req, res, next) => {
+      try {
+        const { userId, token }: { userId: number; token: string } = req.body;
+
+        res.json({ result: await users.confirmAccount(userId, token) });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  router.post(
     "/users/login",
     transform(
       new Schema({

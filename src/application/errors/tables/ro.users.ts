@@ -17,6 +17,7 @@ export const usersTable: IErrorTable = {
     10: "Nu am gasit niciun utilizator cu acest email ${email}.",
     11: "Ai gresit parola.",
     12: "Adresa de email ${email} este deja folosita de alt utilizator.",
-    13: "Nu am gasit niciun utilizator cu acest id ${id}."
+    13: "Nu am gasit niciun utilizator cu acest id ${id}.",
+    14: "Acest link probabil a expirat."
   }
 };

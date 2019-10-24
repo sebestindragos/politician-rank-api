@@ -31,13 +31,18 @@ export class MySqlRepository<T> implements IRepository<T> {
 
   async findOne(query: Partial<T>) {
     let conn: mariadb.PoolConnection | undefined;
+    function wrap(value: any) {
+      if (typeof value === "number") return value;
+      return `${value}`;
+    }
+
     try {
       conn = await this._pool.getConnection();
       const whereClause = Object.keys(query)
-        .map(key => `${key}='${(query as any)[key]}'`)
+        .map(key => `${key}='${wrap((query as any)[key])}'`)
         .join(" AND ");
       const result = await conn.query(
-        `SELECT * from ${this._tableName} WHERE ${whereClause} LIMIT 1`
+        `SELECT * from \`${this._tableName}\` WHERE ${whereClause} LIMIT 1`
       );
 
       return result[0];
@@ -85,14 +90,15 @@ export class MySqlRepository<T> implements IRepository<T> {
     let conn: mariadb.PoolConnection | undefined;
     try {
       conn = await this._pool.getConnection();
-      let q = `UPDATE ${this._tableName}`;
+      let q = `UPDATE \`${this._tableName}\``;
 
       if (Object.keys(update).length === 0)
         throw new Error("Must provide at least one update field.");
 
-      const setClause = Object.keys(update).map(
-        key => `${key}='${(update as any)[key]}'`
-      );
+      // const setClause = Object.keys(update)
+      //   .map(key => `${key}='${(update as any)[key]}'`)
+      //   .join(",");
+      const setClause = this._getQuery(update, ",");
       q += ` SET ${setClause}`;
 
       // compute where clause
@@ -111,5 +117,18 @@ export class MySqlRepository<T> implements IRepository<T> {
     } finally {
       if (conn) conn.release();
     }
+  }
+
+  private _getQuery(input: any, separator: string = ",") {
+    function wrap(value: any) {
+      if (typeof value === "number") return value;
+      return `${value}`;
+    }
+
+    const mysql = Object.keys(input)
+      .map(key => `${key}='${wrap((input as any)[key])}'`)
+      .join(separator);
+
+    return mysql;
   }
 }

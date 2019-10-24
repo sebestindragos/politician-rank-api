@@ -62,4 +62,11 @@ export class User implements IUser {
     if (!this.password) throw new Error("Account has no password set.");
     return bcrypt.compareSync(pwd, this.password);
   }
+
+  /**
+   * Activate this user account.
+   */
+  activate() {
+    this.active = 1;
+  }
 }
