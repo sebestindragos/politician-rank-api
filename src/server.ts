@@ -18,7 +18,7 @@ pm.once("start", async () => {
     await bootstrap();
 
     // start listening
-    let host: string = dotenv.hostname;
+    let host: string = dotenv.host;
     let port: number = dotenv.port;
     server.listen(port, host, () => {
       Logger.get().write("magic happens on port", port);

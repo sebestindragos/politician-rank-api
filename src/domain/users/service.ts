@@ -9,6 +9,9 @@ import { IUser } from "./kernel/IUser";
 import { IAuthToken } from "./kernel/IAuthToken";
 import { dotenv } from "../../application/env";
 import { IRepository } from "../../application/repository/IRepository";
+import { ITempToken } from "./kernel/ITempToken";
+import { EmailRenderer } from "./emails/renderer";
+import { TempToken } from "./kernel/tempToken";
 
 export const SERVICE_NAME = "users";
 
@@ -20,6 +23,8 @@ const EXCEPTIONAL = exceptional.context(SERVICE_NAME);
  * @author Dragos Sebestin
  */
 export class UserService implements IService {
+  private _emailRenderer = new EmailRenderer();
+
   name = SERVICE_NAME;
 
   /**
@@ -27,7 +32,8 @@ export class UserService implements IService {
    */
   constructor(
     private _mailer: IMailer,
-    private _usersRepo: IRepository<IUser>
+    private _usersRepo: IRepository<IUser>,
+    private _tempTokensRepo: IRepository<ITempToken>
   ) {}
 
   /**
@@ -36,41 +42,58 @@ export class UserService implements IService {
    * @returns {string} authentication jwt token
    */
   async registerAccount({
-    email,
+    emailAddress,
     password,
     firstname,
     lastname
   }: {
-    email: string;
+    emailAddress: string;
     password: string;
     firstname: string;
     lastname?: string;
   }) {
     Logger.get().write("registering new user account");
     let user = User.create({
-      email,
+      email: emailAddress,
       plainPassword: password,
       firstname,
       lastname
     });
 
     // check if email is already used
-    const found = await this._usersRepo.findOne({ email });
+    const found = await this._usersRepo.findOne({ email: emailAddress });
     if (found) {
       Logger.get().write("email is already used");
-      throw EXCEPTIONAL.ConflictException(12, { email });
+      throw EXCEPTIONAL.ConflictException(12, { email: emailAddress });
     }
 
     // save to db
     await this._usersRepo.insertOne(user);
 
+    // create a new temp token
+    const tempToken = TempToken.create(user.id);
+    await this._tempTokensRepo.insertOne(tempToken);
+
     // send confirmation email
-    this._mailer;
+    const email = this._emailRenderer.createUserRegisteredEmail({
+      from: dotenv.email.noreplyAddress,
+      to: [user.email],
+      data: {
+        name: user.firstname,
+        token: tempToken.uuid
+      }
+    });
+    await this._mailer.send(email);
 
     Logger.get().write("new user account registered");
 
     return this._buildAuthToken(user);
   }
+
+  /**
+   * Confirm a user account.
+   */
+  confirmAccount(userId: number, tempToken: string) {}
 
   /**
    * Login a user with his credentials.

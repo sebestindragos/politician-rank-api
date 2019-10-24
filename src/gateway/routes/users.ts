@@ -40,7 +40,7 @@ export function get(registry: ServiceRegistry): express.Router {
 
         res.json({
           result: await users.registerAccount({
-            email,
+            emailAddress: email,
             password,
             firstname,
             lastname
