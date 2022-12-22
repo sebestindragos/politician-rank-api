@@ -27,7 +27,7 @@
     "express": "4.17.1",
     "helmet": "3.21.1",
     "inpt.js": "0.5.1",
-    "jsonwebtoken": "8.5.1",
+    "jsonwebtoken": "9.0.0",
     "mariadb": "^2.1.2",
     "moment": "2.24.0",
     "semver": "6.3.0",
